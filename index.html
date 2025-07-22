@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BarrWood Cabinets Quote</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.3/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/awesomplete/1.1.5/awesomplete.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #fff;
+      color: #333;
+      padding: 1em;
+      max-width: 600px;
+      margin: auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 1em;
+    }
+    header img {
+      width: 100%;
+      max-width: 300px;
+    }
+    h2 {
+      color: #800000;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 0.2em;
+    }
+    label {
+      display: block;
+      margin-top: 1em;
+    }
+    input, select {
+      width: 100%;
+      padding: 0.5em;
+      margin-top: 0.3em;
+      font-size: 1em;
+    }
+    button {
+      display: block;
+      width: 100%;
+      padding: 1em;
+      margin-top: 1.5em;
+      background-color: #800000;
+      color: #fff;
+      border: none;
+      font-size: 1.1em;
+      cursor: pointer;
+    }
+    .line-item {
+      border: 1px solid #ccc;
+      padding: 1em;
+      margin-top: 1em;
+      background: #f9f9f9;
+    }
+  
+  </style>
+</head>
+<body>
+  <header>
+    <img src="Logo.jpg" alt="BarrWood Cabinets Logo"/>
+  </header>
+
+  <section id="job-info">
+    <h2>Job Information</h2>
+    <label>Job Name: <input type="text" id="jobName"/></label>
+    <label>Address: <input type="text" id="address"/></label>
+    <label>City/State: <input type="text" id="cityState"/></label>
+    <label>Contact: <input type="text" id="contact"/></label>
+    <label>Phone #: <input type="tel" id="phone"/></label>
+    <button onclick="goToItems()">Next: Add Cabinets</button>
+  </section>
+
+  <section id="cabinet-items" style="display:none;">
+    <h2>Cabinet Line Items</h2>
+    <div class="line-item">
+      <label>SKU:
+        <input id="skuInput" class="awesomplete" type="text" placeholder="Start typing SKU..." autocomplete="off" />
+      </label>
+      <label>Quantity: <input type="number" id="qtyInput" value="1"/></label>
+      <label>Finish/Color:
+        <select id="finishSelect"><option>-- Select --</option></select>
+      </label>
+      <label>Options:
+        <select id="optionSelect"><option>-- Select --</option></select>
+      </label>
+    </div>
+    <button onclick="generateQuote()">View Quote</button>
+  </section>
+
+  <section id="quote-summary" style="display:none;">
+    <h2>Quote Summary</h2>
+    <div id="quoteOutput"></div>
+    <button onclick="downloadPDF()">Download PDF</button>
+  </section>
+
+  <script>
+    let finishes = ["Cherry", "Maple", "Oak", "Hickory"];
+    let options = ["Soft Close Drawers", "Glass Door", "Lazy Susan"];
+    let skuList = ["B30", "W1830", "V36", "U3096"];
+    let priceList = { "B30": 215.00, "W1830": 120.00, "V36": 150.00, "U3096": 425.00 };
+
+    function goToItems() {
+      document.getElementById('job-info').style.display = 'none';
+      document.getElementById('cabinet-items').style.display = 'block';
+      populateDropdowns();
+    }
+
+    function populateDropdowns() {
+      const finishSelect = document.getElementById("finishSelect");
+      const optionSelect = document.getElementById("optionSelect");
+
+      finishSelect.innerHTML = "";
+      finishes.forEach(f => {
+        const opt = document.createElement("option");
+        opt.value = f;
+        opt.textContent = f;
+        finishSelect.appendChild(opt);
+      });
+
+      optionSelect.innerHTML = "";
+      options.forEach(o => {
+        const opt = document.createElement("option");
+        opt.value = o;
+        opt.textContent = o;
+        optionSelect.appendChild(opt);
+      });
+
+      new Awesomplete(document.getElementById("skuInput"), {
+  list: skuList,
+  minChars: 1,
+  maxItems: 10,
+  autoFirst: true
+});
+    }
+
+    function generateQuote() {
+      const sku = document.getElementById("skuInput").value;
+      const qty = parseInt(document.getElementById("qtyInput").value);
+      const finish = document.getElementById("finishSelect").value;
+      const option = document.getElementById("optionSelect").value;
+      const unitPrice = priceList[sku] || 0;
+      const total = unitPrice * qty;
+
+      const output = `
+        <p><strong>Job:</strong> ${document.getElementById("jobName").value}</p>
+        <p><strong>Cabinet SKU:</strong> ${sku}</p>
+        <p><strong>Quantity:</strong> ${qty}</p>
+        <p><strong>Finish:</strong> ${finish}</p>
+        <p><strong>Option:</strong> ${option}</p>
+        <p><strong>Total:</strong> $${total.toFixed(2)}</p>
+      `;
+      document.getElementById("quoteOutput").innerHTML = output;
+      document.getElementById("cabinet-items").style.display = "none";
+      document.getElementById("quote-summary").style.display = "block";
+    }
+
+    function downloadPDF() {
+      html2pdf().from(document.getElementById("quote-summary")).save("BarrWood_Quote.pdf");
+    }
+  </script>
+</body>
+</html>
